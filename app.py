@@ -248,7 +248,12 @@ out = d_all[["Nama Kantor", "Eselon 3", "Nama Lengkap", "Pegawai V"]].rename(
     columns={"Nama Kantor": "Eselon II", "Eselon 3": "Eselon III", "Pegawai V": "Status"}
 )
 out["Status"] = out["Status"].apply(lambda x: "✔ Sudah" if x == "Sudah" else "✘ Belum")
-st.dataframe(out, use_container_width=True, hide_index=True)
+
+def _warnai_status(val):
+    return "color: #2D6A4F; font-weight: 600" if "Sudah" in val else "color: #9B3A2A; font-weight: 600"
+
+styled = out.style.map(_warnai_status, subset=["Status"])
+st.dataframe(styled, use_container_width=True, hide_index=True)
 
 # ── Export ──────────────────────────────────────────────
 st.divider()

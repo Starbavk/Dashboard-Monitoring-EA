@@ -162,54 +162,47 @@ with c3:
     st.markdown(f"<div class='card red'><div class='card-label'>Belum Aktivasi</div><div class='card-value'>{summary['belum']}</div><div class='card-footer'>{pct} dari total</div></div>", unsafe_allow_html=True)
 
 # ── Tabs ────────────────────────────────────────────────
-t1, t2, t3, t4 = st.tabs(["📈 Dashboard", "🏢 Detail Eselon III", "📋 Semua Data", "📤 Export"])
+t1, t2, t3 = st.tabs(["📈 Dashboard", "📋 Data Pegawai", "📤 Export"])
 
 with t1:
     col_ch1, col_ch2 = st.columns(2)
-    with col_ch1: st.plotly_chart(chart_overall(df), use_container_width=True)
-    with col_ch2: st.plotly_chart(chart_donut(df), use_container_width=True)
-    st.plotly_chart(chart_per_kantor(df), use_container_width=True)
+    with col_ch1: st.plotly_chart(chart_overall(df), use_container_width=True, key="dash_bar")
+    with col_ch2: st.plotly_chart(chart_donut(df), use_container_width=True, key="dash_donut")
+    st.plotly_chart(chart_per_kantor(df), use_container_width=True, key="dash_per_es3")
 
 with t2:
     es3_list = sorted(df["Eselon 3"].dropna().unique())
-    selected = st.selectbox("Pilih unit eselon III", es3_list, key="det")
 
-    if selected:
-        d = df[df["Eselon 3"] == selected]
-        a = int((d["Pegawai V"] == "Sudah").sum())
-        b = int((d["Pegawai X"] == "Sudah").sum())
+    col_f1, col_f2 = st.columns([0.15, 0.85])
+    with col_f1:
+        select_all = st.checkbox("Pilih Semua", value=True, key="sa")
+    with col_f2:
+        if select_all:
+            selected_units = es3_list
+            st.multiselect("Unit", es3_list, default=es3_list, key="t2es3_dummy", disabled=True, label_visibility="collapsed")
+        else:
+            selected_units = st.multiselect("Unit", es3_list, key="t2es3")
 
-        mc1, mc2, mc3 = st.columns(3)
-        with mc1: st.markdown(f"<div class='metric-box'><div class='lbl'>Total</div><div class='val'>{len(d)}</div></div>", unsafe_allow_html=True)
-        with mc2: st.markdown(f"<div class='metric-box'><div class='lbl'>Sudah Aktivasi</div><div class='val' style='color:{GREEN}'>{a}</div></div>", unsafe_allow_html=True)
-        with mc3: st.markdown(f"<div class='metric-box'><div class='lbl'>Belum Aktivasi</div><div class='val' style='color:{RED}'>{b}</div></div>", unsafe_allow_html=True)
+    d_filter = df[df["Eselon 3"].isin(selected_units)] if selected_units else df
+    sum_f = get_summary(d_filter)
 
-        def _html(r):
-            ok = r["Pegawai V"] == "Sudah"
-            cls, lbl = ("badge-ok", "Sudah") if ok else ("badge-not", "Belum")
-            return f"<tr><td style='padding:0.3rem 0.4rem;border-bottom:1px solid #F0F0F0'>{r['Nama Lengkap']}</td><td style='padding:0.3rem 0.4rem;border-bottom:1px solid #F0F0F0'><span class='badge {cls}'>{lbl}</span></td></tr>"
-        rows = "".join(_html(r) for _, r in d.iterrows())
+    mc1, mc2, mc3 = st.columns(3)
+    with mc1: st.markdown(f"<div class='metric-box'><div class='lbl'>Total</div><div class='val'>{sum_f['total']}</div></div>", unsafe_allow_html=True)
+    with mc2: st.markdown(f"<div class='metric-box'><div class='lbl'>Sudah Aktivasi</div><div class='val' style='color:{GREEN}'>{sum_f['aktif']}</div></div>", unsafe_allow_html=True)
+    with mc3: st.markdown(f"<div class='metric-box'><div class='lbl'>Belum Aktivasi</div><div class='val' style='color:{RED}'>{sum_f['belum']}</div></div>", unsafe_allow_html=True)
 
-        st.markdown(f"""
-        <div style="background:white;border:1px solid #E8E8E8;border-radius:6px;padding:0.5rem;margin-top:0.5rem">
-            <table style="width:100%;border-collapse:collapse">
-                <thead><tr style="border-bottom:2px solid #E8E8E8">
-                    <th style="text-align:left;padding:0.4rem;font-size:0.72rem;color:{GRAY}">NAMA LENGKAP</th>
-                    <th style="text-align:left;padding:0.4rem;font-size:0.72rem;color:{GRAY}">STATUS</th>
-                </tr></thead>
-                <tbody>{rows}</tbody>
-            </table>
-        </div>
-        """, unsafe_allow_html=True)
+    col_ch_a, col_ch_b = st.columns(2)
+    with col_ch_a: st.plotly_chart(chart_overall(d_filter), use_container_width=True, key="data_bar")
+    with col_ch_b: st.plotly_chart(chart_donut(d_filter), use_container_width=True, key="data_donut")
 
-with t3:
+    st.plotly_chart(chart_per_kantor(d_filter), use_container_width=True, key="data_per_es3")
+
     cf1, cf2, cf3 = st.columns(3)
-    with cf1: f_es3 = st.multiselect("Eselon III", sorted(df["Eselon 3"].dropna().unique()), key="t3es3")
-    with cf2: f_st = st.selectbox("Status", ["Semua", "Sudah Aktivasi", "Belum Aktivasi"], key="t3st")
-    with cf3: f_nm = st.text_input("Cari Nama", placeholder="Ketik nama...", key="t3nm")
+    with cf1: f_st = st.selectbox("Status", ["Semua", "Sudah Aktivasi", "Belum Aktivasi"], key="t2st")
+    with cf2: f_nm = st.text_input("Cari Nama", placeholder="Ketik nama...", key="t2nm")
+    with cf3: st.markdown(f"<div style='padding-top:1.5rem;color:#666;font-size:0.82rem'>{len(d_filter)} pegawai</div>", unsafe_allow_html=True)
 
-    d_all = df.copy()
-    if f_es3: d_all = d_all[d_all["Eselon 3"].isin(f_es3)]
+    d_all = d_filter.copy()
     if f_st == "Sudah Aktivasi": d_all = d_all[d_all["Pegawai V"] == "Sudah"]
     elif f_st == "Belum Aktivasi": d_all = d_all[d_all["Pegawai X"] == "Sudah"]
     if f_nm: d_all = d_all[d_all["Nama Lengkap"].str.contains(f_nm, case=False, na=False)]
@@ -219,9 +212,8 @@ with t3:
     )
     out["Status"] = out["Status"].apply(lambda x: "✔ Sudah" if x == "Sudah" else "✘ Belum")
     st.dataframe(out, use_container_width=True, hide_index=True)
-    st.caption(f"{len(d_all)} dari {len(df)} pegawai")
 
-with t4:
+with t3:
     st.markdown(f"<p style='color:{GRAY};font-size:0.9rem;margin-bottom:0.8rem'>Export data sesuai filter Eselon III yang aktif.</p>", unsafe_allow_html=True)
     e1, e2 = st.columns(2)
     with e1:

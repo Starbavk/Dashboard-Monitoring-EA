@@ -1,8 +1,15 @@
 import streamlit as st
 import pandas as pd
+import base64
+from pathlib import Path
 from utils.data_loader import load_excel, get_summary
 from utils.charts import chart_overall, chart_donut, chart_per_kantor
 from utils.export import export_excel, export_pdf
+from utils import data_store
+
+LOGO_DIR = Path(__file__).parent
+logo_djpb = base64.b64encode((LOGO_DIR / "logo_djpb.png").read_bytes()).decode()
+logo_intress = base64.b64encode((LOGO_DIR / "logo_intress.png").read_bytes()).decode()
 
 st.set_page_config(page_title="Dashboard Monitoring Aktivasi Employee Advocacy", page_icon="📊", layout="wide")
 
@@ -24,8 +31,11 @@ st.markdown(f"""
         margin-bottom: 1.2rem; padding-bottom: 0.8rem;
         border-bottom: 1px solid #E8E8E8;
     }}
-    .app-header h1 {{ font-size: 1.3rem; font-weight: 600; color: {DARK}; margin: 0; }}
-    .app-header span {{ font-size: 0.8rem; color: {GRAY}; }}
+    .app-header .left {{ display: flex; flex-direction: column; gap: 0; }}
+    .app-header h1 {{ font-size: 1.3rem; font-weight: 600; color: {DARK}; margin: 0; line-height: 1.2; }}
+    .app-header .sub {{ font-size: 1.1rem; font-weight: 600; color: {DARK}; margin: 0; line-height: 1.2; }}
+    .app-header .right {{ display: flex; align-items: center; gap: 10px; }}
+    .app-header .right img {{ height: 38px; width: auto; object-fit: contain; }}
 
     .card {{
         background: {WHITE}; border-radius: 6px; padding: 1rem 1.2rem;
@@ -82,8 +92,14 @@ st.markdown(f"""
 
 st.markdown(f"""
 <div class="app-header">
-    <h1>Dashboard Monitoring Aktivasi Employee Advocacy</h1>
-    <span>{st.session_state.get("subtitle", "Kanwil DJPb Provinsi Jawa Barat")}</span>
+    <div class="left">
+        <h1>Dashboard Monitoring Aktivasi Employee Advocacy</h1>
+        <div class="sub">{st.session_state.get("subtitle", "Kanwil DJPb Provinsi Jawa Barat")}</div>
+    </div>
+    <div class="right">
+        <img src="data:image/png;base64,{logo_djpb}" alt="DJPb">
+        <img src="data:image/png;base64,{logo_intress}" alt="InTress">
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -93,19 +109,28 @@ with col_sub[0]:
 
 # ── Sidebar ─────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("### Upload")
-    uploaded_file = st.file_uploader("File Excel", type=["xlsx"], label_visibility="collapsed")
+    st.radio("Mode", ["Admin", "User"], key="role")
 
-    if uploaded_file is not None and st.button("Reset", use_container_width=True):
-        for k in ["data", "uploaded_name"]:
-            if k in st.session_state: del st.session_state[k]
-        st.rerun()
+    if st.session_state["role"] == "Admin":
+        st.markdown("### Upload")
+        uploaded_file = st.file_uploader("File Excel", type=["xlsx"], label_visibility="collapsed")
 
-    if "data" in st.session_state and st.session_state["data"] is not None:
-        df_s = st.session_state["data"]
-        st.caption(f"**{len(df_s)}** pegawai · **{df_s['Eselon 3'].nunique()}** unit")
+        if uploaded_file is not None and st.button("Reset", use_container_width=True):
+            for k in ["data", "uploaded_name"]:
+                if k in st.session_state: del st.session_state[k]
+            st.rerun()
+
+        if "data" in st.session_state and st.session_state["data"] is not None:
+            df_s = st.session_state["data"]
+            st.caption(f"**{len(df_s)}** pegawai · **{df_s['Eselon 3'].nunique()}** unit")
+        else:
+            st.caption("Upload file Excel (.xlsx) dari Dashboard Aktivasi")
     else:
-        st.caption("Upload file Excel (.xlsx) dari Dashboard Aktivasi")
+        uploaded_file = None
+        if data_store.exists():
+            st.caption("Mode User — hanya melihat data")
+        else:
+            st.caption("Mode User — menunggu admin upload data")
 
     if "data" in st.session_state and st.session_state["data"] is not None:
         st.divider()
@@ -116,27 +141,35 @@ with st.sidebar:
         else:
             st.multiselect("Unit", es3_list, key="es3")
 
-# ── Load data — only once per file ──────────────────────
+# ── Load data ──────────────────────────────────────────
 if "data" not in st.session_state:
     st.session_state["data"] = None
 
-if uploaded_file is not None and st.session_state.get("uploaded_name") != uploaded_file.name:
+# Admin upload flow
+if st.session_state["role"] == "Admin" and uploaded_file is not None and st.session_state.get("uploaded_name") != uploaded_file.name:
     try:
         uploaded_file.seek(0)
         df = load_excel(uploaded_file)
         st.session_state["data"] = df
         st.session_state["uploaded_name"] = uploaded_file.name
+        data_store.save(df)
         st.rerun()
     except Exception as e:
         st.error(f"Gagal memuat: {e}")
 
+# Load from persistent store if session is empty but file exists
+if st.session_state["data"] is None and data_store.exists():
+    st.session_state["data"] = data_store.load()
+    st.rerun()
+
 df = st.session_state["data"]
 
 if df is None:
+    msg = "Upload file Excel di sidebar untuk memulai" if st.session_state["role"] == "Admin" else "Admin belum mengupload data. Silakan tunggu."
     st.markdown(f"""
     <div style="text-align:center; padding:4rem 1rem; background:{LIGHT}; border-radius:8px;">
         <div style="font-size:3rem; margin-bottom:0.5rem;">📊</div>
-        <h3 style="color:{GRAY}; font-weight:500;">Upload file Excel di sidebar untuk memulai</h3>
+        <h3 style="color:{GRAY}; font-weight:500;">{msg}</h3>
         <p style="color:#AAAAAA; font-size:0.9rem;">File export dari Dashboard Aktivasi</p>
     </div>
     """, unsafe_allow_html=True)

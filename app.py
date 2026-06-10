@@ -83,9 +83,13 @@ st.markdown(f"""
 st.markdown(f"""
 <div class="app-header">
     <h1>Dashboard Monitoring Aktivasi Employee Advocacy</h1>
-    <span>Kanwil DJPb Provinsi Jawa Barat</span>
+    <span>{st.session_state.get("subtitle", "Kanwil DJPb Provinsi Jawa Barat")}</span>
 </div>
 """, unsafe_allow_html=True)
+
+col_sub = st.columns([0.4, 0.6])
+with col_sub[0]:
+    st.text_input("", value="Kanwil DJPb Provinsi Jawa Barat", key="subtitle", placeholder="Ketik judul...", label_visibility="collapsed")
 
 # ── Sidebar ─────────────────────────────────────────────
 with st.sidebar:

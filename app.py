@@ -94,7 +94,7 @@ st.markdown(f"""
 <div class="app-header">
     <div class="left">
         <h1>Dashboard Monitoring Aktivasi Employee Advocacy</h1>
-        <div class="sub">{st.session_state.get("subtitle", "Kanwil DJPb Provinsi Jawa Barat")}</div>
+        <div class="sub">Kanwil DJPb Provinsi Jawa Barat</div>
     </div>
     <div class="right">
         <img src="data:image/png;base64,{logo_djpb}" alt="DJPb">
@@ -105,26 +105,50 @@ st.markdown(f"""
 
 col_sub = st.columns([0.4, 0.6])
 with col_sub[0]:
-    st.text_input("", value="Kanwil DJPb Provinsi Jawa Barat", key="subtitle", placeholder="Ketik judul...", label_visibility="collapsed")
+    edisi_sekarang = data_store.load_edisi()
+    if st.session_state.get("role") == "Admin" and st.session_state.get("admin_auth", False):
+        baru = st.text_input("Edisi EA", value=edisi_sekarang, key="edisi", placeholder="Contoh: EA-06-APBN KiTa Juni 2026")
+        if baru != edisi_sekarang:
+            data_store.save_edisi(baru)
+            st.rerun()
+    else:
+        if edisi_sekarang:
+            st.markdown(f"<div style='font-size:0.9rem;color:{GRAY};margin-top:0.3rem'><strong>Edisi EA:</strong> {edisi_sekarang}</div>", unsafe_allow_html=True)
 
 # ── Sidebar ─────────────────────────────────────────────
 with st.sidebar:
     st.radio("Mode", ["Admin", "User"], key="role")
 
     if st.session_state["role"] == "Admin":
-        st.markdown("### Upload")
-        uploaded_file = st.file_uploader("File Excel", type=["xlsx"], label_visibility="collapsed")
-
-        if uploaded_file is not None and st.button("Reset", use_container_width=True):
-            for k in ["data", "uploaded_name"]:
-                if k in st.session_state: del st.session_state[k]
-            st.rerun()
-
-        if "data" in st.session_state and st.session_state["data"] is not None:
-            df_s = st.session_state["data"]
-            st.caption(f"**{len(df_s)}** pegawai · **{df_s['Eselon 3'].nunique()}** unit")
+        if not st.session_state.get("admin_auth", False):
+            st.markdown("### Login Admin")
+            user = st.text_input("Username", key="login_user")
+            pwd = st.text_input("Password", type="password", key="login_pwd")
+            if st.button("Login", use_container_width=True):
+                if user == "admin" and pwd == "djpb89":
+                    st.session_state["admin_auth"] = True
+                    st.rerun()
+                else:
+                    st.error("Username atau password salah")
+            uploaded_file = None
         else:
-            st.caption("Upload file Excel (.xlsx) dari Dashboard Aktivasi")
+            st.markdown("### Upload")
+            uploaded_file = st.file_uploader("File Excel", type=["xlsx"], label_visibility="collapsed")
+
+            if uploaded_file is not None and st.button("Reset", use_container_width=True):
+                for k in ["data", "uploaded_name"]:
+                    if k in st.session_state: del st.session_state[k]
+                st.rerun()
+
+            if "data" in st.session_state and st.session_state["data"] is not None:
+                df_s = st.session_state["data"]
+                st.caption(f"**{len(df_s)}** pegawai · **{df_s['Eselon 3'].nunique()}** unit")
+            else:
+                st.caption("Upload file Excel (.xlsx) dari Dashboard Aktivasi")
+
+            if st.button("Logout", use_container_width=True):
+                del st.session_state["admin_auth"]
+                st.rerun()
     else:
         uploaded_file = None
         if data_store.exists():
@@ -165,7 +189,12 @@ if st.session_state["data"] is None and data_store.exists():
 df = st.session_state["data"]
 
 if df is None:
-    msg = "Upload file Excel di sidebar untuk memulai" if st.session_state["role"] == "Admin" else "Admin belum mengupload data. Silakan tunggu."
+    if st.session_state["role"] == "Admin" and not st.session_state.get("admin_auth", False):
+        msg = "Login sebagai Admin untuk upload data"
+    elif st.session_state["role"] == "Admin":
+        msg = "Upload file Excel di sidebar untuk memulai"
+    else:
+        msg = "Admin belum mengupload data. Silakan tunggu."
     st.markdown(f"""
     <div style="text-align:center; padding:4rem 1rem; background:{LIGHT}; border-radius:8px;">
         <div style="font-size:3rem; margin-bottom:0.5rem;">📊</div>

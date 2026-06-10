@@ -4,7 +4,7 @@ from utils.data_loader import load_excel, get_summary
 from utils.charts import chart_overall, chart_donut, chart_per_kantor
 from utils.export import export_excel, export_pdf
 
-st.set_page_config(page_title="Monitoring Aktivasi Pegawai", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Dashboard Monitoring Aktivasi Employee Advocacy", page_icon="📊", layout="wide")
 
 BLUE = "#69ACF1"
 GREEN = "#5BAF7B"
@@ -38,18 +38,6 @@ st.markdown(f"""
     .card-label {{ font-size: 0.75rem; color: {GRAY}; margin-bottom: 0.15rem; }}
     .card-value {{ font-size: 1.7rem; font-weight: 700; color: {DARK}; }}
     .card-footer {{ font-size: 0.75rem; color: #666666; margin-top: 0.2rem; }}
-
-    .stTabs [data-baseweb="tab-list"] {{
-        background: {WHITE}; border-bottom: 1px solid #E8E8E8; gap: 0; padding: 0;
-    }}
-    .stTabs [data-baseweb="tab"] {{
-        padding: 0.5rem 1rem; font-size: 0.82rem; color: {GRAY};
-        border-bottom: 2px solid transparent;
-    }}
-    .stTabs [aria-selected="true"] {{
-        color: {DARK} !important; border-bottom-color: {BLUE} !important;
-        font-weight: 600;
-    }}
 
     section[data-testid="stSidebar"] > div:first-child {{
         background: {WHITE}; border-right: 1px solid #E8E8E8;
@@ -94,8 +82,8 @@ st.markdown(f"""
 
 st.markdown(f"""
 <div class="app-header">
-    <h1>Monitoring Aktivasi Media Sosial Pegawai</h1>
-    <span>Kementerian Keuangan · DJPb</span>
+    <h1>Dashboard Monitoring Aktivasi Employee Advocacy</h1>
+    <span>Kanwil DJPb Provinsi Jawa Barat</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -114,6 +102,15 @@ with st.sidebar:
         st.caption(f"**{len(df_s)}** pegawai · **{df_s['Eselon 3'].nunique()}** unit")
     else:
         st.caption("Upload file Excel (.xlsx) dari Dashboard Aktivasi")
+
+    if "data" in st.session_state and st.session_state["data"] is not None:
+        st.divider()
+        st.checkbox("Pilih Semua", value=True, key="sa")
+        es3_list = sorted(st.session_state["data"]["Eselon 3"].dropna().unique())
+        if st.session_state.get("sa", True):
+            st.multiselect("Unit", es3_list, default=es3_list, key="es3_dummy", disabled=True, label_visibility="collapsed")
+        else:
+            st.multiselect("Unit", es3_list, key="es3")
 
 # ── Load data — only once per file ──────────────────────
 if "data" not in st.session_state:
@@ -141,77 +138,59 @@ if df is None:
     """, unsafe_allow_html=True)
     st.stop()
 
-summary = get_summary(df)
+# ── Ambil filter dari sidebar ──────────────────────────
+es3_list = sorted(df["Eselon 3"].dropna().unique())
+
+if st.session_state.get("sa", True):
+    selected_units = st.session_state.get("es3_dummy", es3_list)
+else:
+    selected_units = st.session_state.get("es3", es3_list)
+
+d_filter = df[df["Eselon 3"].isin(selected_units)] if selected_units else df
+sum_f = get_summary(d_filter)
 
 # ── Cards ───────────────────────────────────────────────
 c1, c2, c3 = st.columns(3)
 with c1:
-    st.markdown(f"<div class='card'><div class='card-label'>Total Pegawai</div><div class='card-value'>{summary['total']}</div><div class='card-footer'>{df['Eselon 3'].nunique()} unit eselon III</div></div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='card'><div class='card-label'>Total Pegawai</div><div class='card-value'>{sum_f['total']}</div><div class='card-footer'>{d_filter['Eselon 3'].nunique()} unit eselon III</div></div>", unsafe_allow_html=True)
 with c2:
-    pct = f"{summary['aktif']/summary['total']*100:.1f}%" if summary['total'] else "0%"
-    st.markdown(f"<div class='card green'><div class='card-label'>Sudah Aktivasi</div><div class='card-value'>{summary['aktif']}</div><div class='card-footer'>{pct} dari total</div></div>", unsafe_allow_html=True)
+    pct = f"{sum_f['aktif']/sum_f['total']*100:.1f}%" if sum_f['total'] else "0%"
+    st.markdown(f"<div class='card green'><div class='card-label'>Sudah Aktivasi</div><div class='card-value'>{sum_f['aktif']}</div><div class='card-footer'>{pct} dari total</div></div>", unsafe_allow_html=True)
 with c3:
-    pct = f"{summary['belum']/summary['total']*100:.1f}%" if summary['total'] else "0%"
-    st.markdown(f"<div class='card red'><div class='card-label'>Belum Aktivasi</div><div class='card-value'>{summary['belum']}</div><div class='card-footer'>{pct} dari total</div></div>", unsafe_allow_html=True)
+    pct = f"{sum_f['belum']/sum_f['total']*100:.1f}%" if sum_f['total'] else "0%"
+    st.markdown(f"<div class='card red'><div class='card-label'>Belum Aktivasi</div><div class='card-value'>{sum_f['belum']}</div><div class='card-footer'>{pct} dari total</div></div>", unsafe_allow_html=True)
 
-# ── Tabs ────────────────────────────────────────────────
-t1, t2, t3 = st.tabs(["📈 Dashboard", "📋 Data Pegawai", "📤 Export"])
+# ── Charts ──────────────────────────────────────────────
+col_ch_a, col_ch_b = st.columns(2)
+with col_ch_a: st.plotly_chart(chart_overall(d_filter), use_container_width=True, key="ch_bar")
+with col_ch_b: st.plotly_chart(chart_donut(d_filter), use_container_width=True, key="ch_donut")
+st.plotly_chart(chart_per_kantor(d_filter), use_container_width=True, key="ch_per_es3")
 
-with t1:
-    col_ch1, col_ch2 = st.columns(2)
-    with col_ch1: st.plotly_chart(chart_overall(df), use_container_width=True, key="dash_bar")
-    with col_ch2: st.plotly_chart(chart_donut(df), use_container_width=True, key="dash_donut")
-    st.plotly_chart(chart_per_kantor(df), use_container_width=True, key="dash_per_es3")
+# ── Table ───────────────────────────────────────────────
+st.divider()
+cf1, cf2, cf3 = st.columns(3)
+with cf1: f_st = st.selectbox("Status", ["Semua", "Sudah Aktivasi", "Belum Aktivasi"], key="st_flt")
+with cf2: f_nm = st.text_input("Cari Nama", placeholder="Ketik nama...", key="nm_flt")
+with cf3: st.markdown(f"<div style='padding-top:1.5rem;color:#666;font-size:0.82rem'>{len(d_filter)} pegawai</div>", unsafe_allow_html=True)
 
-with t2:
-    es3_list = sorted(df["Eselon 3"].dropna().unique())
+d_all = d_filter.copy()
+if f_st == "Sudah Aktivasi": d_all = d_all[d_all["Pegawai V"] == "Sudah"]
+elif f_st == "Belum Aktivasi": d_all = d_all[d_all["Pegawai X"] == "Sudah"]
+if f_nm: d_all = d_all[d_all["Nama Lengkap"].str.contains(f_nm, case=False, na=False)]
 
-    col_f1, col_f2 = st.columns([0.15, 0.85])
-    with col_f1:
-        select_all = st.checkbox("Pilih Semua", value=True, key="sa")
-    with col_f2:
-        if select_all:
-            selected_units = es3_list
-            st.multiselect("Unit", es3_list, default=es3_list, key="t2es3_dummy", disabled=True, label_visibility="collapsed")
-        else:
-            selected_units = st.multiselect("Unit", es3_list, key="t2es3")
+out = d_all[["Nama Kantor", "Eselon 3", "Nama Lengkap", "Pegawai V"]].rename(
+    columns={"Nama Kantor": "Eselon II", "Eselon 3": "Eselon III", "Pegawai V": "Status"}
+)
+out["Status"] = out["Status"].apply(lambda x: "✔ Sudah" if x == "Sudah" else "✘ Belum")
+st.dataframe(out, use_container_width=True, hide_index=True)
 
-    d_filter = df[df["Eselon 3"].isin(selected_units)] if selected_units else df
-    sum_f = get_summary(d_filter)
-
-    mc1, mc2, mc3 = st.columns(3)
-    with mc1: st.markdown(f"<div class='metric-box'><div class='lbl'>Total</div><div class='val'>{sum_f['total']}</div></div>", unsafe_allow_html=True)
-    with mc2: st.markdown(f"<div class='metric-box'><div class='lbl'>Sudah Aktivasi</div><div class='val' style='color:{GREEN}'>{sum_f['aktif']}</div></div>", unsafe_allow_html=True)
-    with mc3: st.markdown(f"<div class='metric-box'><div class='lbl'>Belum Aktivasi</div><div class='val' style='color:{RED}'>{sum_f['belum']}</div></div>", unsafe_allow_html=True)
-
-    col_ch_a, col_ch_b = st.columns(2)
-    with col_ch_a: st.plotly_chart(chart_overall(d_filter), use_container_width=True, key="data_bar")
-    with col_ch_b: st.plotly_chart(chart_donut(d_filter), use_container_width=True, key="data_donut")
-
-    st.plotly_chart(chart_per_kantor(d_filter), use_container_width=True, key="data_per_es3")
-
-    cf1, cf2, cf3 = st.columns(3)
-    with cf1: f_st = st.selectbox("Status", ["Semua", "Sudah Aktivasi", "Belum Aktivasi"], key="t2st")
-    with cf2: f_nm = st.text_input("Cari Nama", placeholder="Ketik nama...", key="t2nm")
-    with cf3: st.markdown(f"<div style='padding-top:1.5rem;color:#666;font-size:0.82rem'>{len(d_filter)} pegawai</div>", unsafe_allow_html=True)
-
-    d_all = d_filter.copy()
-    if f_st == "Sudah Aktivasi": d_all = d_all[d_all["Pegawai V"] == "Sudah"]
-    elif f_st == "Belum Aktivasi": d_all = d_all[d_all["Pegawai X"] == "Sudah"]
-    if f_nm: d_all = d_all[d_all["Nama Lengkap"].str.contains(f_nm, case=False, na=False)]
-
-    out = d_all[["Nama Kantor", "Eselon 3", "Nama Lengkap", "Pegawai V"]].rename(
-        columns={"Nama Kantor": "Eselon II", "Eselon 3": "Eselon III", "Pegawai V": "Status"}
-    )
-    out["Status"] = out["Status"].apply(lambda x: "✔ Sudah" if x == "Sudah" else "✘ Belum")
-    st.dataframe(out, use_container_width=True, hide_index=True)
-
-with t3:
-    st.markdown(f"<p style='color:{GRAY};font-size:0.9rem;margin-bottom:0.8rem'>Export data sesuai filter Eselon III yang aktif.</p>", unsafe_allow_html=True)
-    e1, e2 = st.columns(2)
-    with e1:
-        st.download_button("📥 Download Excel", export_excel(df), "monitoring_aktivasi.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
-        st.caption("Data Pegawai + Ringkasan per Eselon III")
-    with e2:
-        st.download_button("📥 Download PDF", export_pdf(df), "monitoring_aktivasi.pdf", mime="application/pdf", use_container_width=True)
-        st.caption("Ringkasan + detail pegawai")
+# ── Export ──────────────────────────────────────────────
+st.divider()
+st.markdown(f"<p style='color:{GRAY};font-size:0.9rem;margin-bottom:0.8rem'>Export data sesuai filter di atas.</p>", unsafe_allow_html=True)
+e1, e2 = st.columns(2)
+with e1:
+    st.download_button("📥 Download Excel", export_excel(d_filter), "monitoring_aktivasi.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
+    st.caption("Data Pegawai + Ringkasan per Eselon III")
+with e2:
+    st.download_button("📥 Download PDF", export_pdf(d_filter), "monitoring_aktivasi.pdf", mime="application/pdf", use_container_width=True)
+    st.caption("Ringkasan + detail pegawai")

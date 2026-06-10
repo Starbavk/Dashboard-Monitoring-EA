@@ -105,16 +105,12 @@ with st.sidebar:
     uploaded_file = st.file_uploader("File Excel", type=["xlsx"], label_visibility="collapsed")
 
     if uploaded_file is not None and st.button("Reset", use_container_width=True):
-        for k in ["data", "uploaded_name", "flt"]:
+        for k in ["data", "uploaded_name"]:
             if k in st.session_state: del st.session_state[k]
         st.rerun()
 
     if "data" in st.session_state and st.session_state["data"] is not None:
         df_s = st.session_state["data"]
-        es3_list = sorted(df_s["Eselon 3"].dropna().unique())
-        st.markdown("### Filter Eselon III")
-        st.multiselect("Unit", es3_list, default=es3_list, key="flt", label_visibility="collapsed")
-        st.divider()
         st.caption(f"**{len(df_s)}** pegawai · **{df_s['Eselon 3'].nunique()}** unit")
     else:
         st.caption("Upload file Excel (.xlsx) dari Dashboard Aktivasi")
@@ -145,9 +141,6 @@ if df is None:
     """, unsafe_allow_html=True)
     st.stop()
 
-# ── Apply filter ────────────────────────────────────────
-selected_units = st.session_state.get("flt", sorted(df["Eselon 3"].dropna().unique()))
-df = df[df["Eselon 3"].isin(selected_units)] if selected_units else df
 summary = get_summary(df)
 
 # ── Cards ───────────────────────────────────────────────

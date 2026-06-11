@@ -36,6 +36,8 @@ st.markdown(f"""
     .app-header .sub {{ font-size: 1.1rem; font-weight: 600; color: {DARK}; margin: 0; line-height: 1.2; }}
     .app-header .right {{ display: flex; align-items: center; gap: 10px; }}
     .app-header .right img {{ height: 38px; width: auto; object-fit: contain; }}
+    .app-header .right img.logo-kiri {{ height: 65px; }}
+    .app-header .right img.logo-kanan {{ height: 28px; }}
 
     .card {{
         background: {WHITE}; border-radius: 6px; padding: 1rem 1.2rem;
@@ -97,8 +99,8 @@ st.markdown(f"""
         <div class="sub">Kanwil DJPb Provinsi Jawa Barat</div>
     </div>
     <div class="right">
-        <img src="data:image/png;base64,{logo_djpb}" alt="DJPb">
-        <img src="data:image/png;base64,{logo_intress}" alt="InTress">
+        <img class="logo-kiri" src="data:image/png;base64,{logo_djpb}" alt="DJPb">
+        <img class="logo-kanan" src="data:image/png;base64,{logo_intress}" alt="InTress">
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -117,7 +119,16 @@ with col_sub[0]:
 
 # ── Sidebar ─────────────────────────────────────────────
 with st.sidebar:
-    st.radio("Mode", ["Admin", "User"], key="role")
+    if "data" in st.session_state and st.session_state["data"] is not None:
+        st.checkbox("Pilih Semua", value=True, key="sa")
+        es3_list = sorted(st.session_state["data"]["Eselon 3"].dropna().unique())
+        if st.session_state.get("sa", True):
+            st.multiselect("Unit", es3_list, default=es3_list, key="es3_dummy", disabled=True, label_visibility="collapsed")
+        else:
+            st.multiselect("Unit", es3_list, key="es3")
+        st.divider()
+
+    st.radio("Mode", ["Admin", "User"], index=1, key="role")
 
     if st.session_state["role"] == "Admin":
         if not st.session_state.get("admin_auth", False):
@@ -155,15 +166,6 @@ with st.sidebar:
             st.caption("Mode User — hanya melihat data")
         else:
             st.caption("Mode User — menunggu admin upload data")
-
-    if "data" in st.session_state and st.session_state["data"] is not None:
-        st.divider()
-        st.checkbox("Pilih Semua", value=True, key="sa")
-        es3_list = sorted(st.session_state["data"]["Eselon 3"].dropna().unique())
-        if st.session_state.get("sa", True):
-            st.multiselect("Unit", es3_list, default=es3_list, key="es3_dummy", disabled=True, label_visibility="collapsed")
-        else:
-            st.multiselect("Unit", es3_list, key="es3")
 
 # ── Load data ──────────────────────────────────────────
 if "data" not in st.session_state:
@@ -227,10 +229,19 @@ with c3:
     st.markdown(f"<div class='card red'><div class='card-label'>Belum Aktivasi</div><div class='card-value'>{sum_f['belum']}</div><div class='card-footer'>{pct} dari total</div></div>", unsafe_allow_html=True)
 
 # ── Charts ──────────────────────────────────────────────
+CHART_CONFIG = {
+    "modeBarButtonsToRemove": [
+        "zoom2d", "pan2d", "select2d", "lasso2d",
+        "zoomIn2d", "zoomOut2d", "toImage",
+        "toggleSpikelines", "hoverClosestCartesian",
+        "hoverCompareCartesian", "sendDataToCloud",
+    ],
+    "displaylogo": False,
+}
 col_ch_a, col_ch_b = st.columns(2)
-with col_ch_a: st.plotly_chart(chart_overall(d_filter), use_container_width=True, key="ch_bar")
-with col_ch_b: st.plotly_chart(chart_donut(d_filter), use_container_width=True, key="ch_donut")
-st.plotly_chart(chart_per_kantor(d_filter), use_container_width=True, key="ch_per_es3")
+with col_ch_a: st.plotly_chart(chart_overall(d_filter), use_container_width=True, key="ch_bar", config=CHART_CONFIG)
+with col_ch_b: st.plotly_chart(chart_donut(d_filter), use_container_width=True, key="ch_donut", config=CHART_CONFIG)
+st.plotly_chart(chart_per_kantor(d_filter), use_container_width=True, key="ch_per_es3", config=CHART_CONFIG)
 
 # ── Table ───────────────────────────────────────────────
 st.divider()

@@ -59,11 +59,13 @@ st.markdown(f"""
     [data-testid="stSidebar"] label, [data-testid="stSidebar"] .stCaption {{
         color: {SIDEBAR_TEXT} !important;
     }}
-    [data-testid="stSidebar"] .stRadio label span {{
-        color: {SIDEBAR_TEXT} !important;
-    }}
+    [data-testid="stSidebar"] .stRadio label span,
+    [data-testid="stSidebar"] .stRadio label p,
+    [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label,
+    [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label span,
+    [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label p,
     [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label[data-baseweb="radio"] {{
-        color: {SIDEBAR_TEXT} !important;
+        color: {WHITE} !important;
     }}
     [data-testid="stSidebar"] hr {{
         border-color: rgba(255,255,255,0.1) !important;

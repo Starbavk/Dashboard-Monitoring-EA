@@ -46,18 +46,18 @@ def chart_donut(df: pd.DataFrame) -> go.Figure:
     aktif = int((df["Pegawai V"] == "Sudah").sum())
     belum = int((df["Pegawai X"] == "Sudah").sum())
     total = aktif + belum
-    pct = f"{aktif/total*100:.0f}%" if total else "0%"
 
     fig = go.Figure(data=[go.Pie(
         labels=["Sudah Aktivasi", "Belum Aktivasi"],
         values=[aktif, belum],
         marker_colors=[COLOR_OK, COLOR_NOT],
         hole=0.6,
-        textinfo="label+percent",
+        textinfo="label+value",
         textposition="outside",
         textfont=dict(size=12, color=FONT_COLOR),
         pull=[0.02, 0],
         automargin=True,
+        hovertemplate="%{label}: %{value} (%{percent})<extra></extra>",
     )])
     fig.update_layout(
         height=420,
@@ -67,7 +67,7 @@ def chart_donut(df: pd.DataFrame) -> go.Figure:
         margin=dict(l=60, r=60, t=60, b=60),
         uniformtext_minsize=10,
         annotations=[dict(
-            text=f"<b>{pct}</b><br><span style='font-size:11px'>Aktif</span>",
+            text=f"<b>{aktif}</b><br><span style='font-size:11px'>Sudah Aktivasi</span>",
             x=0.5, y=0.5, font=dict(size=22, color=FONT_COLOR),
             showarrow=False
         )],

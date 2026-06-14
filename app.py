@@ -23,6 +23,50 @@ WHITE = "#FFFFFF"
 
 st.markdown(f"""
 <style>
+    .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"],
+    [data-testid="stHeader"], [data-testid="stBottomBlockContainer"] {{
+        background: {WHITE} !important;
+    }}
+    [data-testid="stSidebar"] {{ background: {WHITE} !important; }}
+    .stApp, .stApp p, .stApp span, .stApp label, .stApp div,
+    .stMarkdown, [data-testid="stMarkdownContainer"] {{
+        color: {DARK};
+    }}
+    [data-testid="stHeader"] {{ border-bottom: none; }}
+
+    /* Input, select, multiselect widgets -> light */
+    [data-baseweb="select"] > div, [data-baseweb="input"] > div,
+    [data-baseweb="base-input"], .stTextInput input, .stSelectbox div[data-baseweb="select"] > div {{
+        background: {WHITE} !important; color: {DARK} !important;
+        border-color: #D0D0D0 !important;
+    }}
+    [data-baseweb="tag"] {{
+        background: {LIGHT} !important; color: {DARK} !important;
+    }}
+    [data-baseweb="tag"] span {{ color: {DARK} !important; }}
+    [data-baseweb="popover"] li, [data-baseweb="menu"] li {{
+        background: {WHITE} !important; color: {DARK} !important;
+    }}
+    [data-baseweb="popover"] ul, [data-baseweb="menu"] ul {{ background: {WHITE} !important; }}
+    div[data-testid="stDataFrame"] {{ background: {WHITE} !important; }}
+
+    /* File uploader -> light */
+    [data-testid="stFileUploader"], [data-testid="stFileUploaderDropzone"],
+    section[data-testid="stFileUploaderDropzone"] {{
+        background: {LIGHT} !important; color: {DARK} !important;
+        border: 1px dashed #C8C8C8 !important;
+    }}
+    [data-testid="stFileUploaderDropzone"] * {{ color: {DARK} !important; }}
+
+    /* Buttons -> light */
+    .stButton > button, [data-testid="stBaseButton-secondary"],
+    [data-testid="stBaseButton-primary"], [data-testid="baseButton-secondary"] {{
+        background: {WHITE} !important; color: {DARK} !important;
+        border: 1px solid #D0D0D0 !important;
+    }}
+    .stButton > button:hover {{ border-color: {BLUE} !important; color: {BLUE} !important; }}
+    .stButton > button p, .stButton > button span {{ color: inherit !important; }}
+
     .block-container {{ padding: 1.2rem 1.5rem !important; max-width: 100% !important; }}
     #root > div:first-child {{ background: {WHITE}; }}
 

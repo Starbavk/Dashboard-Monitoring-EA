@@ -1,9 +1,12 @@
 import plotly.graph_objects as go
 import pandas as pd
 
-COLOR_OK = "#5BAF7B"
-COLOR_NOT = "#E8836B"
-COLOR_BG = "#FAFAFA"
+COLOR_OK = "#059669"
+COLOR_NOT = "#DC2626"
+COLOR_BG = "rgba(0,0,0,0)"
+PAPER_BG = "rgba(0,0,0,0)"
+FONT_COLOR = "#111827"
+GRID_COLOR = "#D1D5DB"
 
 
 def chart_overall(df: pd.DataFrame) -> go.Figure:
@@ -18,20 +21,23 @@ def chart_overall(df: pd.DataFrame) -> go.Figure:
         marker_color=[COLOR_OK, COLOR_NOT],
         text=[f"{aktif}", f"{belum}"],
         textposition="outside",
-        textfont=dict(size=15, color="#333"),
+        textfont=dict(size=15, color=FONT_COLOR),
         cliponaxis=False,
-        width=[0.5, 0.5],
+        width=[0.45, 0.45],
+        marker=dict(cornerradius=4),
     ))
     fig.update_layout(
-        title=dict(text="Status Aktivasi Keseluruhan", font=dict(size=14, color="#333")),
         yaxis_title="Jumlah Pegawai",
-        height=360,
+        height=300,
         plot_bgcolor=COLOR_BG,
-        paper_bgcolor="white",
-        font=dict(color="#333"),
-        yaxis=dict(gridcolor="#E8E8E8", title_font=dict(size=12, color="#333"), automargin=True),
-        xaxis=dict(title_font=dict(size=12, color="#333"), automargin=True),
-        margin=dict(l=50, r=40, t=40, b=40),
+        paper_bgcolor=PAPER_BG,
+        font=dict(color=FONT_COLOR, size=13),
+        yaxis=dict(gridcolor=GRID_COLOR, automargin=True, showgrid=True,
+                   tickfont=dict(size=12, color=FONT_COLOR),
+                   title_font=dict(size=12, color=FONT_COLOR)),
+        xaxis=dict(automargin=True, tickfont=dict(size=13, color=FONT_COLOR)),
+        margin=dict(l=50, r=30, t=20, b=40),
+        showlegend=False,
     )
     return fig
 
@@ -39,26 +45,30 @@ def chart_overall(df: pd.DataFrame) -> go.Figure:
 def chart_donut(df: pd.DataFrame) -> go.Figure:
     aktif = int((df["Pegawai V"] == "Sudah").sum())
     belum = int((df["Pegawai X"] == "Sudah").sum())
+    total = aktif + belum
+    pct = f"{aktif/total*100:.0f}%" if total else "0%"
 
     fig = go.Figure(data=[go.Pie(
         labels=["Sudah Aktivasi", "Belum Aktivasi"],
         values=[aktif, belum],
         marker_colors=[COLOR_OK, COLOR_NOT],
-        hole=0.55,
+        hole=0.6,
         textinfo="label+percent",
         textposition="outside",
-        textfont=dict(size=12, color="#333"),
+        textfont=dict(size=12, color=FONT_COLOR),
         pull=[0.02, 0],
+        automargin=True,
     )])
     fig.update_layout(
-        title=dict(text="Komposisi Aktivasi", font=dict(size=14, color="#333")),
-        height=360,
-        paper_bgcolor="white",
-        font=dict(color="#333"),
+        height=420,
+        paper_bgcolor=PAPER_BG,
+        font=dict(color=FONT_COLOR, size=13),
         showlegend=False,
-        margin=dict(l=40, r=40, t=40, b=40),
+        margin=dict(l=60, r=60, t=60, b=60),
+        uniformtext_minsize=10,
         annotations=[dict(
-            text=f"{aktif+belum}", x=0.5, y=0.5, font=dict(size=18, color="#333"),
+            text=f"<b>{pct}</b><br><span style='font-size:11px'>Aktif</span>",
+            x=0.5, y=0.5, font=dict(size=22, color=FONT_COLOR),
             showarrow=False
         )],
     )
@@ -75,42 +85,50 @@ def chart_per_kantor(df: pd.DataFrame) -> go.Figure:
             Belum=("Pegawai X", lambda x: (x == "Sudah").sum()),
         )
         .reset_index()
-        .sort_values("Total", ascending=True)
+        .sort_values("Aktif", ascending=True)
     )
+
+    # Show top 10 by total for cleaner display
+    if len(per_kantor) > 10:
+        per_kantor = per_kantor.tail(10)
 
     fig = go.Figure()
     fig.add_trace(go.Bar(
         y=per_kantor[group_col],
         x=per_kantor["Aktif"],
-        name="Sudah Aktivasi",
+        name="Sudah",
         orientation="h",
         marker_color=COLOR_OK,
         text=per_kantor["Aktif"],
         textposition="outside",
+        textfont=dict(size=12, color=FONT_COLOR),
         cliponaxis=False,
+        marker=dict(cornerradius=3),
     ))
     fig.add_trace(go.Bar(
         y=per_kantor[group_col],
         x=per_kantor["Belum"],
-        name="Belum Aktivasi",
+        name="Belum",
         orientation="h",
         marker_color=COLOR_NOT,
         text=per_kantor["Belum"],
         textposition="outside",
+        textfont=dict(size=12, color=FONT_COLOR),
         cliponaxis=False,
+        marker=dict(cornerradius=3),
     ))
     fig.update_layout(
-        title=dict(text="Aktivasi per Eselon III", font=dict(size=14, color="#333")),
         barmode="group",
-        xaxis_title="Jumlah Pegawai",
-        height=max(320, len(per_kantor) * 35),
+        height=max(320, len(per_kantor) * 36),
         plot_bgcolor=COLOR_BG,
-        paper_bgcolor="white",
-        font=dict(color="#333"),
-        xaxis=dict(gridcolor="#E8E8E8", title_font=dict(size=12, color="#333"), automargin=True),
-        yaxis=dict(title_font=dict(size=12, color="#333"), automargin=True),
-        legend=dict(orientation="h", y=1.04, x=0.8, font=dict(size=11)),
-        margin=dict(l=140, r=40, t=40, b=40),
+        paper_bgcolor=PAPER_BG,
+        font=dict(color=FONT_COLOR, size=12),
+        xaxis=dict(gridcolor=GRID_COLOR, automargin=True, showgrid=True,
+                   tickfont=dict(size=12, color=FONT_COLOR)),
+        yaxis=dict(automargin=True, tickfont=dict(size=12, color=FONT_COLOR)),
+        legend=dict(orientation="h", y=1.05, x=0.5, xanchor="center",
+                    font=dict(size=12, color=FONT_COLOR)),
+        margin=dict(l=10, r=50, t=30, b=30),
         hovermode="y unified",
     )
     return fig

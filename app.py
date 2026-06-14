@@ -13,172 +13,289 @@ logo_intress = base64.b64encode((LOGO_DIR / "logo_intress.png").read_bytes()).de
 
 st.set_page_config(page_title="Dashboard Monitoring Aktivasi Employee Advocacy", page_icon="📊", layout="wide")
 
-BLUE = "#69ACF1"
-GREEN = "#5BAF7B"
-RED = "#E8836B"
-DARK = "#222222"
-GRAY = "#555555"
-LIGHT = "#F5F5F5"
+# ── Color Palette ───────────────────────────────────────
+SIDEBAR_BG = "#1B2A4A"
+SIDEBAR_TEXT = "#CBD5E1"
+SIDEBAR_ACTIVE = "#3B82F6"
+MAIN_BG = "#F0F4F8"
+DARK = "#1E293B"
+GRAY = "#64748B"
+BLUE = "#3B82F6"
+GREEN = "#059669"
+RED = "#DC2626"
+GOLD = "#D97706"
 WHITE = "#FFFFFF"
+BORDER = "#E2E8F0"
 
+# ── CSS ─────────────────────────────────────────────────
 st.markdown(f"""
 <style>
-    .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"],
-    [data-testid="stHeader"], [data-testid="stBottomBlockContainer"] {{
-        background: {WHITE} !important;
-    }}
-    [data-testid="stSidebar"] {{ background: {WHITE} !important; }}
-    .stApp, .stApp p, .stApp span, .stApp label, .stApp div,
-    .stMarkdown, [data-testid="stMarkdownContainer"] {{
-        color: {DARK};
-    }}
-    [data-testid="stHeader"] {{ border-bottom: none; }}
+    /* Force light color scheme globally */
+    :root, html, body {{ color-scheme: light !important; }}
 
-    /* Input, select, multiselect widgets -> light */
+    /* Global */
+    .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"],
+    [data-testid="stBottomBlockContainer"] {{
+        background: {MAIN_BG} !important;
+        color-scheme: light !important;
+    }}
+    .block-container {{
+        padding: 1.5rem 2rem !important; max-width: 100% !important;
+    }}
+    [data-testid="stHeader"] {{ display: none !important; }}
+
+    /* Sidebar */
+    [data-testid="stSidebar"] {{
+        background: {SIDEBAR_BG} !important;
+        min-width: 260px !important; max-width: 260px !important;
+    }}
+    section[data-testid="stSidebar"] > div:first-child {{
+        background: {SIDEBAR_BG} !important;
+        padding-top: 1.5rem !important;
+    }}
+    [data-testid="stSidebar"] .stMarkdown, [data-testid="stSidebar"] .stMarkdown p,
+    [data-testid="stSidebar"] .stMarkdown span, [data-testid="stSidebar"] .stMarkdown h1,
+    [data-testid="stSidebar"] .stMarkdown h2, [data-testid="stSidebar"] .stMarkdown h3,
+    [data-testid="stSidebar"] label, [data-testid="stSidebar"] .stCaption {{
+        color: {SIDEBAR_TEXT} !important;
+    }}
+    [data-testid="stSidebar"] .stRadio label span {{
+        color: {SIDEBAR_TEXT} !important;
+    }}
+    [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label[data-baseweb="radio"] {{
+        color: {SIDEBAR_TEXT} !important;
+    }}
+    [data-testid="stSidebar"] hr {{
+        border-color: rgba(255,255,255,0.1) !important;
+    }}
+    [data-testid="stSidebar"] .stButton > button {{
+        background: transparent !important;
+        color: {SIDEBAR_TEXT} !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        border-radius: 8px !important;
+    }}
+    [data-testid="stSidebar"] .stButton > button:hover {{
+        background: rgba(255,255,255,0.1) !important;
+        border-color: {SIDEBAR_ACTIVE} !important;
+        color: {WHITE} !important;
+    }}
+    [data-testid="stSidebar"] .stTextInput input {{
+        background: rgba(255,255,255,0.08) !important;
+        color: {WHITE} !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        border-radius: 6px !important;
+    }}
+    [data-testid="stSidebar"] .stFileUploader,
+    [data-testid="stSidebar"] [data-testid="stFileUploaderDropzone"] {{
+        background: rgba(255,255,255,0.05) !important;
+        border: 1px dashed rgba(255,255,255,0.3) !important;
+        border-radius: 8px !important;
+    }}
+    [data-testid="stSidebar"] [data-testid="stFileUploaderDropzone"] * {{
+        color: {SIDEBAR_TEXT} !important;
+    }}
+    [data-testid="stSidebar"] [data-testid="stFileUploaderDropzone"] button {{
+        background: rgba(255,255,255,0.1) !important;
+        color: {WHITE} !important;
+        border: 1px solid rgba(255,255,255,0.3) !important;
+    }}
+    [data-testid="stSidebar"] .stCheckbox label span {{
+        color: {SIDEBAR_TEXT} !important;
+    }}
+    [data-testid="stSidebar"] [data-baseweb="select"] > div {{
+        background: rgba(255,255,255,0.08) !important;
+        border-color: rgba(255,255,255,0.2) !important;
+    }}
+    [data-testid="stSidebar"] [data-baseweb="tag"] {{
+        background: rgba(59,130,246,0.2) !important;
+        color: {WHITE} !important;
+    }}
+    [data-testid="stSidebar"] [data-baseweb="tag"] span {{ color: {WHITE} !important; }}
+
+    /* Main content widgets */
     [data-baseweb="select"] > div, [data-baseweb="input"] > div,
-    [data-baseweb="base-input"], .stTextInput input, .stSelectbox div[data-baseweb="select"] > div {{
+    [data-baseweb="base-input"], .stTextInput input,
+    .stSelectbox div[data-baseweb="select"] > div {{
         background: {WHITE} !important; color: {DARK} !important;
-        border-color: #D0D0D0 !important;
+        border-color: {BORDER} !important; border-radius: 8px !important;
     }}
-    [data-baseweb="tag"] {{
-        background: {LIGHT} !important; color: {DARK} !important;
-    }}
-    [data-baseweb="tag"] span {{ color: {DARK} !important; }}
+    [data-baseweb="tag"] {{ background: #EFF6FF !important; color: {BLUE} !important; border-radius: 4px !important; }}
+    [data-baseweb="tag"] span {{ color: {BLUE} !important; }}
     [data-baseweb="popover"] li, [data-baseweb="menu"] li {{
         background: {WHITE} !important; color: {DARK} !important;
     }}
     [data-baseweb="popover"] ul, [data-baseweb="menu"] ul {{ background: {WHITE} !important; }}
+
+    /* Cards */
+    .overview-cards {{
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+        margin-bottom: 1.5rem;
+    }}
+    .ov-card {{
+        background: {WHITE}; border-radius: 12px; padding: 1.2rem 1.4rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid {BORDER};
+        display: flex; align-items: center; gap: 1rem;
+    }}
+    .ov-card .icon {{
+        width: 48px; height: 48px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem; font-weight: 700; color: {WHITE};
+        flex-shrink: 0;
+    }}
+    .ov-card .icon.blue {{ background: #2563EB; }}
+    .ov-card .icon.green {{ background: {GREEN}; }}
+    .ov-card .icon.red {{ background: {RED}; }}
+    .ov-card .info .label {{ font-size: 0.8rem; color: {GRAY}; margin-bottom: 4px; font-weight: 500; }}
+    .ov-card .info .value {{ font-size: 1.6rem; font-weight: 700; color: {DARK}; line-height: 1.2; }}
+    .ov-card .info .sub {{ font-size: 0.75rem; color: {GRAY}; margin-top: 4px; }}
+
+    /* Chart containers */
+    .chart-container {{
+        background: {WHITE}; border-radius: 12px; padding: 1.2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid {BORDER};
+        margin-bottom: 1rem;
+    }}
+    .chart-title {{
+        font-size: 0.9rem; font-weight: 600; color: {DARK}; margin-bottom: 0.5rem;
+    }}
+
+    /* Table section */
+    .table-section {{
+        background: {WHITE}; border-radius: 12px; padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid {BORDER};
+        margin-bottom: 1rem;
+    }}
+
+    /* Force dataframe light mode */
     div[data-testid="stDataFrame"] {{ background: {WHITE} !important; }}
-
-    /* File uploader -> light */
-    [data-testid="stFileUploader"], [data-testid="stFileUploaderDropzone"],
-    section[data-testid="stFileUploaderDropzone"] {{
-        background: {LIGHT} !important; color: {DARK} !important;
-        border: 1px dashed #C8C8C8 !important;
+    div[data-testid="stDataFrame"] > div {{ background: {WHITE} !important; }}
+    div[data-testid="stDataFrame"] iframe {{
+        background: {WHITE} !important;
+        color-scheme: light !important;
     }}
-    [data-testid="stFileUploaderDropzone"] * {{ color: {DARK} !important; }}
-
-    /* Buttons -> light */
-    .stButton > button, [data-testid="stBaseButton-secondary"],
-    [data-testid="stBaseButton-primary"], [data-testid="baseButton-secondary"] {{
-        background: {WHITE} !important; color: {DARK} !important;
-        border: 1px solid #D0D0D0 !important;
+    .stDataFrame, .stDataFrame > div, .stDataFrame div {{
+        background: {WHITE} !important;
+        color-scheme: light !important;
     }}
-    .stButton > button:hover {{ border-color: {BLUE} !important; color: {BLUE} !important; }}
-    .stButton > button p, .stButton > button span {{ color: inherit !important; }}
 
-    .block-container {{ padding: 1.2rem 1.5rem !important; max-width: 100% !important; }}
-    #root > div:first-child {{ background: {WHITE}; }}
+    /* Force ALL labels in main area to dark */
+    .stApp label, .stApp .stSelectbox label, .stApp .stTextInput label,
+    .stApp .stMultiSelect label, .stApp .stRadio label,
+    .stApp [data-testid="stWidgetLabel"], .stApp [data-testid="stWidgetLabel"] p {{
+        color: {DARK} !important;
+    }}
 
-    .app-header {{
+    /* Force placeholder text visible */
+    .stApp .stTextInput input::placeholder {{
+        color: #94A3B8 !important; opacity: 1 !important;
+    }}
+    .stApp .stTextInput input {{ color: {DARK} !important; }}
+
+    /* Force selectbox text dark */
+    .stApp .stSelectbox [data-baseweb="select"] span,
+    .stApp .stSelectbox [data-baseweb="select"] div {{
+        color: {DARK} !important;
+    }}
+
+    /* Caption text in main area */
+    .stApp .stCaption, .stApp .stMarkdown p, .stApp .stMarkdown span {{
+        color: {DARK} !important;
+    }}
+
+    /* Override: sidebar text must stay light (higher specificity) */
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] [data-testid="stWidgetLabel"],
+    [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
+    [data-testid="stSidebar"] .stCaption,
+    [data-testid="stSidebar"] .stMarkdown p,
+    [data-testid="stSidebar"] .stMarkdown span {{
+        color: {SIDEBAR_TEXT} !important;
+    }}
+
+    /* Welcome bar */
+    .welcome-bar {{
+        background: {WHITE}; border-radius: 12px; padding: 1rem 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid {BORDER};
+        margin-bottom: 1.5rem;
         display: flex; align-items: center; justify-content: space-between;
-        margin-bottom: 1.2rem; padding-bottom: 0.8rem;
-        border-bottom: 1px solid #E8E8E8;
     }}
-    .app-header .left {{ display: flex; flex-direction: column; gap: 0; }}
-    .app-header h1 {{ font-size: 1.3rem; font-weight: 600; color: {DARK}; margin: 0; line-height: 1.2; }}
-    .app-header .sub {{ font-size: 1.1rem; font-weight: 600; color: {DARK}; margin: 0; line-height: 1.2; }}
-    .app-header .right {{ display: flex; align-items: center; gap: 10px; }}
-    .app-header .right img {{ height: 38px; width: auto; object-fit: contain; }}
-    .app-header .right img.logo-kiri {{ height: 65px; }}
-    .app-header .right img.logo-kanan {{ height: 28px; }}
+    .welcome-bar .left h2 {{
+        font-size: 1.1rem; font-weight: 600; color: {DARK}; margin: 0;
+    }}
+    .welcome-bar .left .edisi {{
+        font-size: 0.85rem; color: {GRAY}; margin: 0.2rem 0 0 0;
+    }}
+    .welcome-bar .right {{
+        display: flex; align-items: center; gap: 10px;
+    }}
+    .welcome-bar .right img {{ height: 40px; width: auto; object-fit: contain; }}
+    .welcome-bar .right img.logo-kiri {{ height: 55px; }}
+    .welcome-bar .right img.logo-kanan {{ height: 24px; }}
 
-    .card {{
-        background: {WHITE}; border-radius: 6px; padding: 1rem 1.2rem;
-        border: 1px solid #E8E8E8; border-left: 4px solid {BLUE};
-        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-    }}
-    .card.green {{ border-left-color: {GREEN}; }}
-    .card.red {{ border-left-color: {RED}; }}
-    .card.gold {{ border-left-color: #F0C060; }}
-    .card-label {{ font-size: 0.75rem; color: {GRAY}; margin-bottom: 0.15rem; }}
-    .card-value {{ font-size: 1.7rem; font-weight: 700; color: {DARK}; }}
-    .card-footer {{ font-size: 0.75rem; color: #666666; margin-top: 0.2rem; }}
-
-    section[data-testid="stSidebar"] > div:first-child {{
-        background: {WHITE}; border-right: 1px solid #E8E8E8;
-    }}
-    section[data-testid="stSidebar"] .stMarkdown h3 {{
-        font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;
-        color: {GRAY}; font-weight: 600;
-    }}
-
-    .badge {{
-        display: inline-block; padding: 2px 10px; border-radius: 3px;
-        font-size: 0.75rem; font-weight: 500;
-    }}
-    .badge-ok {{ background: #E4F3E8; color: #2D6A4F; }}
-    .badge-not {{ background: #F8E6E2; color: #9B3A2A; }}
-
+    /* Download buttons */
     .stDownloadButton button {{
         background: {WHITE} !important; color: {DARK} !important;
-        border: 1px solid #D0D0D0 !important; border-radius: 4px !important;
+        border: 1px solid {BORDER} !important; border-radius: 8px !important;
         font-size: 0.85rem !important;
     }}
     .stDownloadButton button:hover {{
         border-color: {BLUE} !important; color: {BLUE} !important;
+        background: #F8FAFC !important;
     }}
 
-    .metric-box {{
-        background: {WHITE}; border: 1px solid #E8E8E8; border-radius: 6px;
-        padding: 0.7rem 1rem; text-align: center;
+    /* Sidebar brand */
+    .sidebar-brand {{
+        text-align: center; padding: 0.5rem 1rem 1.5rem;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        margin-bottom: 1rem;
     }}
-    .metric-box .lbl {{ font-size: 0.7rem; color: {GRAY}; text-transform: uppercase; letter-spacing: 0.3px; }}
-    .metric-box .val {{ font-size: 1.4rem; font-weight: 700; color: {DARK}; }}
+    .sidebar-brand img {{ height: 50px; margin-bottom: 0.5rem; }}
+    .sidebar-brand .title {{ font-size: 0.8rem; color: {SIDEBAR_TEXT}; font-weight: 500; }}
+    .sidebar-brand .subtitle {{ font-size: 0.65rem; color: rgba(255,255,255,0.5); }}
 
-    div[data-testid="stDataFrame"] {{ font-size: 0.82rem; }}
-    .stCaption, .stMarkdown p, .stMarkdown li, label, .stSelectbox label, .stMultiSelect label {{
-        color: #333333 !important;
+    /* Empty state */
+    .empty-state {{
+        text-align: center; padding: 5rem 2rem;
+        background: {WHITE}; border-radius: 12px;
+        border: 1px solid {BORDER};
     }}
-    section[data-testid="stSidebar"] .stCaption {{
-        color: #444444 !important;
-    }}
+    .empty-state .icon {{ font-size: 3.5rem; margin-bottom: 1rem; }}
+    .empty-state h3 {{ color: {DARK}; font-weight: 500; margin-bottom: 0.5rem; }}
+    .empty-state p {{ color: {GRAY}; font-size: 0.9rem; }}
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown(f"""
-<div class="app-header">
-    <div class="left">
-        <h1>Dashboard Monitoring Aktivasi Employee Advocacy</h1>
-        <div class="sub">Kanwil DJPb Provinsi Jawa Barat</div>
-    </div>
-    <div class="right">
-        <img class="logo-kiri" src="data:image/png;base64,{logo_djpb}" alt="DJPb">
-        <img class="logo-kanan" src="data:image/png;base64,{logo_intress}" alt="InTress">
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-col_sub = st.columns([0.4, 0.6])
-with col_sub[0]:
-    edisi_sekarang = data_store.load_edisi()
-    if st.session_state.get("role") == "Admin" and st.session_state.get("admin_auth", False):
-        baru = st.text_input("Edisi EA", value=edisi_sekarang, key="edisi", placeholder="Contoh: EA-06-APBN KiTa Juni 2026")
-        if baru != edisi_sekarang:
-            data_store.save_edisi(baru)
-            st.rerun()
-    else:
-        if edisi_sekarang:
-            st.markdown(f"<div style='font-size:0.9rem;color:{GRAY};margin-top:0.3rem'><strong>Edisi EA:</strong> {edisi_sekarang}</div>", unsafe_allow_html=True)
-
 # ── Sidebar ─────────────────────────────────────────────
 with st.sidebar:
+    # Brand
+    st.markdown(f"""
+    <div class="sidebar-brand">
+        <img src="data:image/png;base64,{logo_djpb}" alt="DJPb">
+        <div class="title">Dashboard Monitoring EA</div>
+        <div class="subtitle">Kanwil DJPb Prov. Jawa Barat</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Filter (only show if data loaded)
     if "data" in st.session_state and st.session_state["data"] is not None:
+        st.markdown(f"<p style='font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.5);margin-bottom:0.3rem;font-weight:600'>Filter Unit</p>", unsafe_allow_html=True)
         st.checkbox("Pilih Semua", value=True, key="sa")
         es3_list = sorted(st.session_state["data"]["Eselon 3"].dropna().unique())
         if st.session_state.get("sa", True):
             st.multiselect("Unit", es3_list, default=es3_list, key="es3_dummy", disabled=True, label_visibility="collapsed")
         else:
-            st.multiselect("Unit", es3_list, key="es3")
+            st.multiselect("Unit", es3_list, key="es3", label_visibility="collapsed")
         st.divider()
 
-    st.radio("Mode", ["Admin", "User"], index=1, key="role")
+    # Role & Auth
+    st.markdown(f"<p style='font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.5);margin-bottom:0.3rem;font-weight:600'>Mode</p>", unsafe_allow_html=True)
+    st.radio("Mode", ["Admin", "User"], index=1, key="role", label_visibility="collapsed")
 
     if st.session_state["role"] == "Admin":
         if not st.session_state.get("admin_auth", False):
-            st.markdown("### Login Admin")
-            user = st.text_input("Username", key="login_user")
-            pwd = st.text_input("Password", type="password", key="login_pwd")
+            st.markdown(f"<p style='font-size:0.75rem;color:{SIDEBAR_TEXT};margin-top:0.5rem'>Login Admin</p>", unsafe_allow_html=True)
+            user = st.text_input("Username", key="login_user", label_visibility="collapsed", placeholder="Username")
+            pwd = st.text_input("Password", type="password", key="login_pwd", label_visibility="collapsed", placeholder="Password")
             if st.button("Login", use_container_width=True):
                 if user == "admin" and pwd == "djpb89":
                     st.session_state["admin_auth"] = True
@@ -187,35 +304,36 @@ with st.sidebar:
                     st.error("Username atau password salah")
             uploaded_file = None
         else:
-            st.markdown("### Upload")
+            st.markdown(f"<p style='font-size:0.75rem;color:{SIDEBAR_TEXT};margin-top:0.5rem'>Upload Data</p>", unsafe_allow_html=True)
             uploaded_file = st.file_uploader("File Excel", type=["xlsx"], label_visibility="collapsed")
 
-            if uploaded_file is not None and st.button("Reset", use_container_width=True):
+            if uploaded_file is not None and st.button("Reset Data", use_container_width=True):
                 for k in ["data", "uploaded_name"]:
-                    if k in st.session_state: del st.session_state[k]
+                    if k in st.session_state:
+                        del st.session_state[k]
                 st.rerun()
 
             if "data" in st.session_state and st.session_state["data"] is not None:
                 df_s = st.session_state["data"]
-                st.caption(f"**{len(df_s)}** pegawai · **{df_s['Eselon 3'].nunique()}** unit")
+                st.caption(f"{len(df_s)} pegawai · {df_s['Eselon 3'].nunique()} unit")
             else:
                 st.caption("Upload file Excel (.xlsx) dari Dashboard Aktivasi")
 
+            st.divider()
             if st.button("Logout", use_container_width=True):
                 del st.session_state["admin_auth"]
                 st.rerun()
     else:
         uploaded_file = None
         if data_store.exists():
-            st.caption("Mode User — hanya melihat data")
+            st.caption("Mode User — view only")
         else:
-            st.caption("Mode User — menunggu admin upload data")
+            st.caption("Menunggu admin upload data")
 
 # ── Load data ──────────────────────────────────────────
 if "data" not in st.session_state:
     st.session_state["data"] = None
 
-# Admin upload flow
 if st.session_state["role"] == "Admin" and uploaded_file is not None and st.session_state.get("uploaded_name") != uploaded_file.name:
     try:
         uploaded_file.seek(0)
@@ -227,13 +345,40 @@ if st.session_state["role"] == "Admin" and uploaded_file is not None and st.sess
     except Exception as e:
         st.error(f"Gagal memuat: {e}")
 
-# Load from persistent store if session is empty but file exists
 if st.session_state["data"] is None and data_store.exists():
     st.session_state["data"] = data_store.load()
     st.rerun()
 
 df = st.session_state["data"]
 
+# ── Header / Welcome Bar ───────────────────────────────
+st.markdown(f"""
+<div class="welcome-bar">
+    <div class="left">
+        <h2>Dashboard Monitoring Aktivasi Employee Advocacy</h2>
+        <p class="edisi">Kanwil DJPb Provinsi Jawa Barat</p>
+    </div>
+    <div class="right">
+        <img class="logo-kiri" src="data:image/png;base64,{logo_djpb}" alt="DJPb">
+        <img class="logo-kanan" src="data:image/png;base64,{logo_intress}" alt="InTress">
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Edisi EA ────────────────────────────────────────────
+edisi_sekarang = data_store.load_edisi()
+if st.session_state.get("role") == "Admin" and st.session_state.get("admin_auth", False):
+    col_edisi = st.columns([0.4, 0.6])
+    with col_edisi[0]:
+        baru = st.text_input("Edisi EA", value=edisi_sekarang, key="edisi", placeholder="Contoh: EA-06-APBN KiTa Juni 2026")
+        if baru != edisi_sekarang:
+            data_store.save_edisi(baru)
+            st.rerun()
+else:
+    if edisi_sekarang:
+        st.markdown(f"<div style='font-size:0.9rem;color:{GRAY};margin-bottom:1rem'><strong>Edisi EA:</strong> {edisi_sekarang}</div>", unsafe_allow_html=True)
+
+# ── Empty state ─────────────────────────────────────────
 if df is None:
     if st.session_state["role"] == "Admin" and not st.session_state.get("admin_auth", False):
         msg = "Login sebagai Admin untuk upload data"
@@ -242,15 +387,15 @@ if df is None:
     else:
         msg = "Admin belum mengupload data. Silakan tunggu."
     st.markdown(f"""
-    <div style="text-align:center; padding:4rem 1rem; background:{LIGHT}; border-radius:8px;">
-        <div style="font-size:3rem; margin-bottom:0.5rem;">📊</div>
-        <h3 style="color:{GRAY}; font-weight:500;">{msg}</h3>
-        <p style="color:#AAAAAA; font-size:0.9rem;">File export dari Dashboard Aktivasi</p>
+    <div class="empty-state">
+        <div class="icon">📊</div>
+        <h3>{msg}</h3>
+        <p>File export dari Dashboard Aktivasi (.xlsx)</p>
     </div>
     """, unsafe_allow_html=True)
     st.stop()
 
-# ── Ambil filter dari sidebar ──────────────────────────
+# ── Apply filters ───────────────────────────────────────
 es3_list = sorted(df["Eselon 3"].dropna().unique())
 
 if st.session_state.get("sa", True):
@@ -261,16 +406,42 @@ else:
 d_filter = df[df["Eselon 3"].isin(selected_units)] if selected_units else df
 sum_f = get_summary(d_filter)
 
-# ── Cards ───────────────────────────────────────────────
-c1, c2, c3 = st.columns(3)
-with c1:
-    st.markdown(f"<div class='card'><div class='card-label'>Total Pegawai</div><div class='card-value'>{sum_f['total']}</div><div class='card-footer'>{d_filter['Eselon 3'].nunique()} unit eselon III</div></div>", unsafe_allow_html=True)
-with c2:
-    pct = f"{sum_f['aktif']/sum_f['total']*100:.1f}%" if sum_f['total'] else "0%"
-    st.markdown(f"<div class='card green'><div class='card-label'>Sudah Aktivasi</div><div class='card-value'>{sum_f['aktif']}</div><div class='card-footer'>{pct} dari total</div></div>", unsafe_allow_html=True)
-with c3:
-    pct = f"{sum_f['belum']/sum_f['total']*100:.1f}%" if sum_f['total'] else "0%"
-    st.markdown(f"<div class='card red'><div class='card-label'>Belum Aktivasi</div><div class='card-value'>{sum_f['belum']}</div><div class='card-footer'>{pct} dari total</div></div>", unsafe_allow_html=True)
+# ── Overview Cards (3 cards) ────────────────────────────
+icon_users = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
+icon_check = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+icon_x = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+
+pct_aktif = f"{sum_f['aktif']/sum_f['total']*100:.1f}%" if sum_f['total'] else "0%"
+pct_belum = f"{sum_f['belum']/sum_f['total']*100:.1f}%" if sum_f['total'] else "0%"
+
+st.markdown(f"""
+<div class="overview-cards">
+    <div class="ov-card">
+        <div class="icon blue">{icon_users}</div>
+        <div class="info">
+            <div class="label">Total Pegawai</div>
+            <div class="value">{sum_f['total']}</div>
+            <div class="sub">{d_filter['Eselon 3'].nunique()} unit eselon III</div>
+        </div>
+    </div>
+    <div class="ov-card">
+        <div class="icon green">{icon_check}</div>
+        <div class="info">
+            <div class="label">Sudah Aktivasi</div>
+            <div class="value">{sum_f['aktif']}</div>
+            <div class="sub">{pct_aktif} dari total</div>
+        </div>
+    </div>
+    <div class="ov-card">
+        <div class="icon red">{icon_x}</div>
+        <div class="info">
+            <div class="label">Belum Aktivasi</div>
+            <div class="value">{sum_f['belum']}</div>
+            <div class="sub">{pct_belum} dari total</div>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 # ── Charts ──────────────────────────────────────────────
 CHART_CONFIG = {
@@ -282,41 +453,93 @@ CHART_CONFIG = {
     ],
     "displaylogo": False,
 }
+
 col_ch_a, col_ch_b = st.columns(2)
-with col_ch_a: st.plotly_chart(chart_overall(d_filter), use_container_width=True, key="ch_bar", config=CHART_CONFIG)
-with col_ch_b: st.plotly_chart(chart_donut(d_filter), use_container_width=True, key="ch_donut", config=CHART_CONFIG)
+with col_ch_a:
+    st.markdown('<div class="chart-container"><div class="chart-title">Status Aktivasi Keseluruhan</div>', unsafe_allow_html=True)
+    st.plotly_chart(chart_overall(d_filter), use_container_width=True, key="ch_bar", config=CHART_CONFIG)
+    st.markdown('</div>', unsafe_allow_html=True)
+with col_ch_b:
+    st.markdown('<div class="chart-container"><div class="chart-title">Komposisi Aktivasi</div>', unsafe_allow_html=True)
+    st.plotly_chart(chart_donut(d_filter), use_container_width=True, key="ch_donut", config=CHART_CONFIG)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown('<div class="chart-container"><div class="chart-title">Aktivasi per Eselon III</div>', unsafe_allow_html=True)
 st.plotly_chart(chart_per_kantor(d_filter), use_container_width=True, key="ch_per_es3", config=CHART_CONFIG)
+st.markdown('</div>', unsafe_allow_html=True)
 
 # ── Table ───────────────────────────────────────────────
-st.divider()
-cf1, cf2, cf3 = st.columns(3)
-with cf1: f_st = st.selectbox("Status", ["Semua", "Sudah Aktivasi", "Belum Aktivasi"], key="st_flt")
-with cf2: f_nm = st.text_input("Cari Nama", placeholder="Ketik nama...", key="nm_flt")
-with cf3: st.markdown(f"<div style='padding-top:1.5rem;color:#666;font-size:0.82rem'>{len(d_filter)} pegawai</div>", unsafe_allow_html=True)
+st.markdown(f'<hr style="border:none;border-top:1px solid {BORDER};margin:1.5rem 0;">', unsafe_allow_html=True)
+cf1, cf2, cf3 = st.columns([1, 1, 0.6])
+with cf1:
+    f_st = st.selectbox("Status", ["Semua", "Sudah Aktivasi", "Belum Aktivasi"], key="st_flt")
+with cf2:
+    f_nm = st.text_input("Cari Nama", placeholder="Ketik nama...", key="nm_flt")
+with cf3:
+    st.markdown(f"""<div style="margin-top:1.5rem;padding:0.5rem 1rem;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;display:flex;align-items:baseline;justify-content:center;gap:6px;">
+        <span style="font-size:1.3rem;font-weight:700;color:#1D4ED8;">{len(d_filter)}</span>
+        <span style="font-size:0.8rem;color:#3B82F6;font-weight:500;">pegawai</span>
+    </div>""", unsafe_allow_html=True)
 
 d_all = d_filter.copy()
-if f_st == "Sudah Aktivasi": d_all = d_all[d_all["Pegawai V"] == "Sudah"]
-elif f_st == "Belum Aktivasi": d_all = d_all[d_all["Pegawai X"] == "Sudah"]
-if f_nm: d_all = d_all[d_all["Nama Lengkap"].str.contains(f_nm, case=False, na=False)]
+if f_st == "Sudah Aktivasi":
+    d_all = d_all[d_all["Pegawai V"] == "Sudah"]
+elif f_st == "Belum Aktivasi":
+    d_all = d_all[d_all["Pegawai X"] == "Sudah"]
+if f_nm:
+    d_all = d_all[d_all["Nama Lengkap"].str.contains(f_nm, case=False, na=False)]
 
 out = d_all[["Nama Kantor", "Eselon 3", "Nama Lengkap", "Pegawai V"]].rename(
     columns={"Nama Kantor": "Eselon II", "Eselon 3": "Eselon III", "Pegawai V": "Status"}
 )
+out = out.reset_index(drop=True)
 out["Status"] = out["Status"].apply(lambda x: "✔ Sudah" if x == "Sudah" else "✘ Belum")
 
-def _warnai_status(val):
-    return "color: #2D6A4F; font-weight: 600" if "Sudah" in val else "color: #9B3A2A; font-weight: 600"
+# Build HTML table manually to avoid dark-mode iframe issue
+rows_html = ""
+for i, (_, row) in enumerate(out.iterrows()):
+    status_val = row["Status"]
+    if "Sudah" in status_val:
+        status_style = "color:#059669;font-weight:600"
+    else:
+        status_style = "color:#DC2626;font-weight:600"
+    bg = "#F8FAFC" if i % 2 == 0 else WHITE
+    rows_html += (
+        f'<tr style="background:{bg};">'
+        f'<td style="padding:10px 12px;color:{DARK};border:1px solid {BORDER};">{row["Eselon II"]}</td>'
+        f'<td style="padding:10px 12px;color:{DARK};border:1px solid {BORDER};">{row["Eselon III"]}</td>'
+        f'<td style="padding:10px 12px;color:{DARK};border:1px solid {BORDER};">{row["Nama Lengkap"]}</td>'
+        f'<td style="padding:10px 12px;border:1px solid {BORDER};{status_style}">{status_val}</td>'
+        f'</tr>'
+    )
 
-styled = out.style.map(_warnai_status, subset=["Status"])
-st.dataframe(styled, use_container_width=True, hide_index=True)
+table_html = f"""
+<div style="max-height:500px; overflow-y:auto; border:1px solid {BORDER}; border-radius:8px;">
+<table style="width:100%; border-collapse:collapse; font-size:0.85rem; background:{WHITE};">
+    <thead>
+        <tr style="background:#E2E8F0; position:sticky; top:0; z-index:1;">
+            <th style="padding:10px 12px; text-align:left; font-weight:600; color:{DARK}; border:1px solid {BORDER};">Eselon II</th>
+            <th style="padding:10px 12px; text-align:left; font-weight:600; color:{DARK}; border:1px solid {BORDER};">Eselon III</th>
+            <th style="padding:10px 12px; text-align:left; font-weight:600; color:{DARK}; border:1px solid {BORDER};">Nama Lengkap</th>
+            <th style="padding:10px 12px; text-align:left; font-weight:600; color:{DARK}; border:1px solid {BORDER};">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {rows_html}
+    </tbody>
+</table>
+</div>
+"""
+st.markdown(table_html, unsafe_allow_html=True)
 
 # ── Export ──────────────────────────────────────────────
-st.divider()
-st.markdown(f"<p style='color:{GRAY};font-size:0.9rem;margin-bottom:0.8rem'>Export data sesuai filter di atas.</p>", unsafe_allow_html=True)
+st.markdown(f"<p style='color:{GRAY};font-size:0.9rem;margin:1rem 0 0.8rem'>Export data sesuai filter di atas.</p>", unsafe_allow_html=True)
 e1, e2 = st.columns(2)
 with e1:
-    st.download_button("📥 Download Excel", export_excel(d_filter), "monitoring_aktivasi.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
+    st.download_button("📥 Download Excel", export_excel(d_all), "monitoring_aktivasi.xlsx",
+                       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
     st.caption("Data Pegawai + Ringkasan per Eselon III")
 with e2:
-    st.download_button("📥 Download PDF", export_pdf(d_filter), "monitoring_aktivasi.pdf", mime="application/pdf", use_container_width=True)
+    st.download_button("📥 Download PDF", export_pdf(d_all), "monitoring_aktivasi.pdf",
+                       mime="application/pdf", use_container_width=True)
     st.caption("Ringkasan + detail pegawai")

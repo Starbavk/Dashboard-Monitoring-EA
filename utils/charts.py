@@ -9,34 +9,62 @@ FONT_COLOR = "#111827"
 GRID_COLOR = "#D1D5DB"
 
 
-def chart_overall(df: pd.DataFrame) -> go.Figure:
-    aktif = int((df["Pegawai V"] == "Sudah").sum())
-    belum = int((df["Pegawai X"] == "Sudah").sum())
+def chart_top_bottom(df: pd.DataFrame, top_n: int = 5) -> go.Figure:
+    """Horizontal bar: Top N & Bottom N KPPN by activation percentage."""
+    group_col = "Eselon 3" if "Eselon 3" in df.columns else "Nama Kantor"
+    per = (
+        df.groupby(group_col)
+        .agg(
+            Total=("Nama Lengkap", "count"),
+            Aktif=("Pegawai V", lambda x: (x == "Sudah").sum()),
+        )
+        .reset_index()
+    )
+    per["Pct"] = (per["Aktif"] / per["Total"] * 100).round(1)
+
+    n = min(top_n, len(per))
+    top = per.nlargest(n, "Pct").sort_values("Pct", ascending=True)
+    bot = per.nsmallest(n, "Pct").sort_values("Pct", ascending=True)
+
+    # Combine: bottom first, then separator, then top
+    combined = pd.concat([bot, top], ignore_index=True).drop_duplicates(subset=[group_col])
+    # Re-sort so top is at top of chart (ascending for horizontal bar)
+    combined = combined.sort_values("Pct", ascending=True)
+
+    colors = []
+    for _, row in combined.iterrows():
+        if row[group_col] in top[group_col].values:
+            colors.append(COLOR_OK)
+        else:
+            colors.append(COLOR_NOT)
 
     fig = go.Figure()
     fig.add_trace(go.Bar(
-        name="Pegawai",
-        x=["Sudah Aktivasi", "Belum Aktivasi"],
-        y=[aktif, belum],
-        marker_color=[COLOR_OK, COLOR_NOT],
-        text=[f"{aktif}", f"{belum}"],
+        y=combined[group_col],
+        x=combined["Pct"],
+        orientation="h",
+        marker_color=colors,
+        text=combined.apply(lambda r: f"{r['Pct']:.1f}% ({int(r['Aktif'])}/{int(r['Total'])})", axis=1),
         textposition="outside",
-        textfont=dict(size=15, color=FONT_COLOR),
+        textfont=dict(size=11, color=FONT_COLOR),
         cliponaxis=False,
-        width=[0.45, 0.45],
-        marker=dict(cornerradius=4),
+        marker=dict(cornerradius=3),
+        hovertemplate="%{y}: %{x:.1f}%<extra></extra>",
     ))
     fig.update_layout(
-        yaxis_title="Jumlah Pegawai",
-        height=300,
+        height=max(340, len(combined) * 38),
         plot_bgcolor=COLOR_BG,
         paper_bgcolor=PAPER_BG,
-        font=dict(color=FONT_COLOR, size=13),
-        yaxis=dict(gridcolor=GRID_COLOR, automargin=True, showgrid=True,
-                   tickfont=dict(size=12, color=FONT_COLOR),
-                   title_font=dict(size=12, color=FONT_COLOR)),
-        xaxis=dict(automargin=True, tickfont=dict(size=13, color=FONT_COLOR)),
-        margin=dict(l=50, r=30, t=20, b=40),
+        font=dict(color=FONT_COLOR, size=12),
+        xaxis=dict(
+            gridcolor=GRID_COLOR, automargin=True, showgrid=True,
+            tickfont=dict(size=11, color=FONT_COLOR),
+            title_text="% Aktivasi",
+            title_font=dict(size=11, color=FONT_COLOR),
+            range=[0, 115],
+        ),
+        yaxis=dict(automargin=True, tickfont=dict(size=11, color=FONT_COLOR)),
+        margin=dict(l=10, r=60, t=20, b=40),
         showlegend=False,
     )
     return fig
@@ -88,10 +116,6 @@ def chart_per_kantor(df: pd.DataFrame) -> go.Figure:
         .sort_values("Aktif", ascending=True)
     )
 
-    # Show top 10 by total for cleaner display
-    if len(per_kantor) > 10:
-        per_kantor = per_kantor.tail(10)
-
     fig = go.Figure()
     fig.add_trace(go.Bar(
         y=per_kantor[group_col],
@@ -119,7 +143,7 @@ def chart_per_kantor(df: pd.DataFrame) -> go.Figure:
     ))
     fig.update_layout(
         barmode="group",
-        height=max(320, len(per_kantor) * 36),
+        height=max(320, len(per_kantor) * 50),
         plot_bgcolor=COLOR_BG,
         paper_bgcolor=PAPER_BG,
         font=dict(color=FONT_COLOR, size=12),

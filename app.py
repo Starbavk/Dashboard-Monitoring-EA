@@ -3,7 +3,7 @@ import pandas as pd
 import base64
 from pathlib import Path
 from utils.data_loader import load_excel, get_summary
-from utils.charts import chart_overall, chart_donut, chart_per_kantor
+from utils.charts import chart_donut, chart_top_bottom, chart_per_kantor
 from utils.export import export_excel, export_pdf
 from utils import data_store
 
@@ -458,16 +458,17 @@ CHART_CONFIG = {
 
 col_ch_a, col_ch_b = st.columns(2)
 with col_ch_a:
-    st.markdown('<div class="chart-container"><div class="chart-title">Status Aktivasi Keseluruhan</div>', unsafe_allow_html=True)
-    st.plotly_chart(chart_overall(d_filter), use_container_width=True, key="ch_bar", config=CHART_CONFIG)
-    st.markdown('</div>', unsafe_allow_html=True)
-with col_ch_b:
     st.markdown('<div class="chart-container"><div class="chart-title">Komposisi Aktivasi</div>', unsafe_allow_html=True)
     st.plotly_chart(chart_donut(d_filter), use_container_width=True, key="ch_donut", config=CHART_CONFIG)
     st.markdown('</div>', unsafe_allow_html=True)
+with col_ch_b:
+    st.markdown('<div class="chart-container"><div class="chart-title">Top & Bottom 5 Unit (% Aktivasi)</div>', unsafe_allow_html=True)
+    st.plotly_chart(chart_top_bottom(d_filter), use_container_width=True, key="ch_topbot", config=CHART_CONFIG)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<div class="chart-container"><div class="chart-title">Aktivasi per Eselon III</div>', unsafe_allow_html=True)
-st.plotly_chart(chart_per_kantor(d_filter), use_container_width=True, key="ch_per_es3", config=CHART_CONFIG)
+with st.container(height=450):
+    st.plotly_chart(chart_per_kantor(d_filter), use_container_width=True, key="ch_per_es3", config=CHART_CONFIG)
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ── Table ───────────────────────────────────────────────

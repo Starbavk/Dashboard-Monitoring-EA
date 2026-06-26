@@ -249,7 +249,9 @@ with st.sidebar:
             user = st.text_input("Username", key="login_user", label_visibility="collapsed", placeholder="Username")
             pwd = st.text_input("Password", type="password", key="login_pwd", label_visibility="collapsed", placeholder="Password")
             if st.button("Login", use_container_width=True):
-                if user == "admin" and pwd == "djpb89":
+                _au = st.secrets.get("admin_user", "")
+                _ap = st.secrets.get("admin_pwd", "")
+                if user == _au and pwd == _ap:
                     st.session_state["admin_auth"] = True
                     st.rerun()
                 else:

@@ -1,0 +1,37 @@
+# Data files (user-generated, tidak perlu di-commit)
+data_store.parquet
+data_edisi.json
+data_meta.json
+
+# Secrets & environment
+.env
+.env.*
+*.key
+*.pem
+
+# Excel / raw data
+*.xlsx
+*.xls
+
+# Config lokal
+secrets.*
+config.local.*
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store

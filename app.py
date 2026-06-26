@@ -21,7 +21,6 @@ st.set_page_config(
 # ── Color Palette ───────────────────────────────────────
 SIDEBAR_BG = "#1B2A4A"
 SIDEBAR_TEXT = "#CBD5E1"
-SIDEBAR_ACTIVE = "#3B82F6"
 MAIN_BG = "#F0F4F8"
 DARK = "#1E293B"
 GRAY = "#64748B"
@@ -82,7 +81,7 @@ st.markdown(f"""
     }}
     [data-testid="stSidebar"] .stButton > button:hover {{
         background: rgba(255,255,255,0.1) !important;
-        border-color: {SIDEBAR_ACTIVE} !important;
+        border-color: {BLUE} !important;
         color: {WHITE} !important;
     }}
     [data-testid="stSidebar"] .stTextInput input {{
@@ -323,12 +322,10 @@ st.markdown(f"""
 # ── Edisi EA ────────────────────────────────────────────
 edisi_sekarang = data_store.load_edisi()
 if st.session_state.get("role") == "Admin" and st.session_state.get("admin_auth", False):
-    col_edisi = st.columns([0.4, 0.6])
-    with col_edisi[0]:
-        baru = st.text_input("Edisi EA", value=edisi_sekarang, key="edisi", placeholder="Contoh: EA-06-APBN KiTa Juni 2026")
-        if baru != edisi_sekarang:
-            data_store.save_edisi(baru)
-            st.rerun()
+    baru = st.text_input("Edisi EA", value=edisi_sekarang, key="edisi", placeholder="Contoh: EA-06-APBN KiTa Juni 2026")
+    if baru != edisi_sekarang:
+        data_store.save_edisi(baru)
+        st.rerun()
 else:
     if edisi_sekarang:
         st.markdown(f"<div style='font-size:0.9rem;color:{GRAY};margin-bottom:1rem'><strong>Edisi EA:</strong> {edisi_sekarang}</div>", unsafe_allow_html=True)

@@ -95,7 +95,6 @@ def chart_per_kantor(df: pd.DataFrame) -> go.Figure:
     per_kantor = (
         df.groupby(group_col)
         .agg(
-            Total=("Nama Lengkap", "count"),
             Aktif=("Pegawai V", lambda x: (x == "Sudah").sum()),
             Belum=("Pegawai X", lambda x: (x == "Sudah").sum()),
         )
